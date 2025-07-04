@@ -1,111 +1,99 @@
-const formProduto = document.getElementById("form-produto");
-const listaProdutos = document.getElementById("lista-produtos");
-const campoBusca = document.getElementById("busca");
-const botaoPDF = document.getElementById("exportar-pdf");
 
-let produtos = JSON.parse(localStorage.getItem("produtos")) || [];
 
-function renderizarProdutos(filtro = "") {
-  listaProdutos.innerHTML = "";
-  produtos.forEach((produto, index) => {
-    if (!produto.nome.toLowerCase().includes(filtro.toLowerCase())) return;
+let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
 
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <img src="./img/produtos/caixaferr.jpg" alt="Produto">
-      <p>
-        <strong contenteditable="false">${produto.nome}</strong><br>
-        <span contenteditable="false">${produto.categoria}</span> -
-        R$ <span contenteditable="false">${parseFloat(produto.preco).toFixed(2)}</span><br>
-        <span contenteditable="false">Estoque: ${produto.quantidade}</span>
-      </p>
-      <button class="editar">Editar</button>
-      <button class="salvar" style="display: none;">Salvar</button>
-      <button class="excluir">Excluir</button>
-    `;
-
-    const btnEditar = card.querySelector(".editar");
-    const btnSalvar = card.querySelector(".salvar");
-    const btnExcluir = card.querySelector(".excluir");
-    const campos = card.querySelectorAll("[contenteditable]");
-
-    btnEditar.addEventListener("click", () => {
-      campos.forEach(c => c.contentEditable = "true");
-      btnEditar.style.display = "none";
-      btnSalvar.style.display = "inline-block";
-    });
-
-    btnSalvar.addEventListener("click", () => {
-      campos.forEach(c => c.contentEditable = "false");
-      produto.nome = campos[0].innerText;
-      produto.categoria = campos[1].innerText;
-      produto.preco = parseFloat(campos[2].innerText.replace(",", "."));
-      produto.quantidade = parseInt(campos[3].innerText.replace("Estoque: ", ""));
-      localStorage.setItem("produtos", JSON.stringify(produtos));
-      renderizarProdutos(campoBusca.value);
-    });
-
-    btnExcluir.addEventListener("click", () => {
-      produtos.splice(index, 1);
-      localStorage.setItem("produtos", JSON.stringify(produtos));
-      renderizarProdutos(campoBusca.value);
-    });
-
-    listaProdutos.appendChild(card);
-  });
+function salvarProdutos() {
+  localStorage.setItem('produtos', JSON.stringify(produtos));
 }
 
-formProduto.addEventListener("submit", function (e) {
+function renderizarProdutos(filtro = '') {
+  const lista = document.getElementById('lista-produtos');
+  lista.innerHTML = '';
+
+  produtos
+    .filter(p => p.nome.toLowerCase().includes(filtro.toLowerCase()))
+    .forEach((produto, index) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      card.innerHTML = `
+        <h3>${produto.nome}</h3>
+        <p><strong>Categoria:</strong> ${produto.categoria}</p>
+        <p><strong>Preço:</strong> R$ ${produto.preco.toFixed(2)}</p>
+        <p><strong>Estoque:</strong> ${produto.quantidade}</p>
+        <div class="card-buttons">
+          <button onclick="editarProduto(${index})">Editar</button>
+          <button onclick="excluirProduto(${index})">Excluir</button>
+        </div>
+      `;
+      lista.appendChild(card);
+    });
+}
+
+document.getElementById('form-produto').addEventListener('submit', function (e) {
   e.preventDefault();
-  const nome = document.getElementById("nome-produto").value;
-  const categoria = document.getElementById("categoria").value;
-  const preco = document.getElementById("preco").value;
-  const quantidade = document.getElementById("quantidade").value;
+  const nome = document.getElementById('nome-produto').value;
+  const categoria = document.getElementById('categoria').value;
+  const preco = parseFloat(document.getElementById('preco').value);
+  const quantidade = parseInt(document.getElementById('quantidade').value);
 
   produtos.push({ nome, categoria, preco, quantidade });
-  localStorage.setItem("produtos", JSON.stringify(produtos));
+  salvarProdutos();
   renderizarProdutos();
-  formProduto.reset();
+  this.reset();
 });
 
-campoBusca.addEventListener("input", () => {
-  renderizarProdutos(campoBusca.value);
+function excluirProduto(index) {
+  if (confirm('Deseja excluir este produto?')) {
+    produtos.splice(index, 1);
+    salvarProdutos();
+    renderizarProdutos();
+  }
+}
+
+function editarProduto(index) {
+  const produto = produtos[index];
+  const novoNome = prompt('Novo nome:', produto.nome);
+  const novaCategoria = prompt('Nova categoria:', produto.categoria);
+  const novoPreco = prompt('Novo preço:', produto.preco);
+  const novaQuantidade = prompt('Nova quantidade:', produto.quantidade);
+
+  if (novoNome && novaCategoria && novoPreco && novaQuantidade) {
+    produtos[index] = {
+      nome: novoNome,
+      categoria: novaCategoria,
+      preco: parseFloat(novoPreco),
+      quantidade: parseInt(novaQuantidade)
+    };
+    salvarProdutos();
+    renderizarProdutos();
+  }
+}
+
+document.getElementById('busca').addEventListener('input', function () {
+  renderizarProdutos(this.value);
 });
 
-botaoPDF.addEventListener("click", () => {
+document.getElementById('exportar-pdf').addEventListener('click', function () {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  doc.setFontSize(18);
-  doc.text("Relatório de Produtos", 14, 15);
-  doc.setFontSize(12);
-  doc.text("Data: " + new Date().toLocaleString(), 14, 25);
+  doc.text('Relatório de Produtos - Ferragem na Mão', 14, 10);
+  const dataAtual = new Date().toLocaleDateString();
+  doc.text(`Data: ${dataAtual}`, 14, 18);
 
-  const tabela = produtos.map(p => [
-    p.nome,
-    p.categoria,
-    `R$ ${parseFloat(p.preco).toFixed(2)}`,
-    p.quantidade
+  const linhas = produtos.map(p => [
+    p.nome, p.categoria, `R$ ${p.preco.toFixed(2)}`, p.quantidade
   ]);
 
   doc.autoTable({
-    startY: 35,
-    head: [["Nome", "Categoria", "Preço", "Estoque"]],
-    body: tabela,
-    styles: {
-      fillColor: [255, 102, 0],
-      halign: 'center',
-      valign: 'middle',
-    },
-    headStyles: {
-      fillColor: [255, 102, 0],
-      textColor: 20,
-    },
-    theme: 'striped'
+    head: [['Nome', 'Categoria', 'Preço', 'Estoque']],
+    body: linhas,
+    startY: 25
   });
 
-  doc.save("produtos.pdf");
+  doc.save('produtos.pdf');
 });
 
+// Carrega ao iniciar
 renderizarProdutos();

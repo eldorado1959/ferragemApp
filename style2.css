@@ -1,5 +1,6 @@
 
 
+/* === Estilo Base === */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -72,53 +73,16 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
-    justify-content: center;
   }
   
   .card {
-    background-color: #fff;
-    border: 2px solid #ff6b00;
-    border-radius: 16px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
     padding: 1rem;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
-    flex: 1 1 250px;
+    flex: 1 1 200px;
     max-width: 300px;
-  }
-  
-  .card:hover {
-    transform: scale(1.02);
-  }
-  
-  .card h3 {
-    margin-top: 0;
-    color: #e85c00;
-  }
-  
-  .card p {
-    margin: 0.3rem 0;
-  }
-  
-  .card-buttons {
-    margin-top: 1rem;
-    display: flex;
-    justify-content: space-between;
-    gap: 0.5rem;
-  }
-  
-  .card-buttons button {
-    flex: 1;
-    padding: 0.5rem;
-    background-color: #ff6b00;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  
-  .card-buttons button:hover {
-    background-color: #d95000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
   
   footer {
@@ -133,7 +97,9 @@ body {
     text-decoration: none;
   }
   
-  /* Tablets */
+  /* === Media Queries === */
+  
+  /* Tablets - até 768px */
   @media (max-width: 768px) {
     .menu {
       flex-direction: column;
@@ -149,7 +115,7 @@ body {
     }
   }
   
-  /* Celulares */
+  /* Celulares - até 480px */
   @media (max-width: 480px) {
     header, footer {
       text-align: center;
